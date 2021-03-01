@@ -1,8 +1,8 @@
 {
   "players": [
     "user_bot",
-    "random_bot",
-    "random_bot",
+    "enemy_bot",
+    "enemy_bot",
     "random_bot"
   ],
   "levels": [
