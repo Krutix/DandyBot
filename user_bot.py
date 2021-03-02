@@ -17,13 +17,36 @@ def find_gold(check, x, y, depth) -> [(int, int)]:
 def potencial_len(xy, t): return abs(xy[0] - t[0]) + abs(xy[1] - t[1])
 
 def check_and_append(check, a_star, a_star_back, t, min_cell):
+    addition = 1
     if t in a_star:
-        a_star[t] = min(a_star[min_cell]+1, a_star[t])
-        if a_star[t] == a_star[min_cell]+1:
+        if a_star[t] > a_star[min_cell]+addition:
+            a_star[t] = a_star[min_cell]+addition
             a_star_back[t] = min_cell
     elif not check('wall', t[0], t[1]):
-        a_star[t] = a_star[min_cell]+1
+        a_star[t] = a_star[min_cell]+addition
         a_star_back[t] = min_cell
+
+def find_path(check, start, find) -> ((int, int), int):
+    a_star = {start : 0}
+    a_star_back = {}
+    a_star_calculated = set()
+    while True:
+        key_min = lambda xy: a_star[xy] + potencial_len(xy, find) if not xy in a_star_calculated else 99999999
+        min_cell = min([*a_star], key=key_min)
+        a_star_calculated |= {min_cell}
+
+        check_and_append(check, a_star, a_star_back, (min_cell[0]-1, min_cell[1]), min_cell)
+        check_and_append(check, a_star, a_star_back, (min_cell[0]+1, min_cell[1]), min_cell)
+        check_and_append(check, a_star, a_star_back, (min_cell[0], min_cell[1]-1), min_cell)
+        check_and_append(check, a_star, a_star_back, (min_cell[0], min_cell[1]+1), min_cell)
+
+        if find in a_star:
+            break
+
+    back = find
+    while a_star_back[back] != start:
+        back = a_star_back[back]
+    return (back, a_star[find])
 
 def script(check, x, y):
     if check('gold', x, y):
@@ -34,37 +57,27 @@ def script(check, x, y):
     while len(gold) == 0:
         gold |= find_gold(check, x, y, depth)
         depth += 1
+    for _ in range(4):
+        gold |= find_gold(check, x, y, depth)
+        depth += 1
 
     gold = list(gold)
-    gold.sort()
+    gold.sort(key=lambda xy: potencial_len((x, y), xy))
 
-    a_star = {(x, y) : 0 }
-    a_star_back = {}
-    a_star_calculated = set()
-    while True:
-        key_min = lambda xy: potencial_len(xy, gold[0]) if not xy in a_star_calculated else 1024
-        min_cell = min([*a_star], key=key_min)
-        a_star_calculated |= {min_cell}
+    a_star_gold = []
 
-        check_and_append(check, a_star, a_star_back, (min_cell[0]-1, min_cell[1]), min_cell)
-        check_and_append(check, a_star, a_star_back, (min_cell[0]+1, min_cell[1]), min_cell)
-        check_and_append(check, a_star, a_star_back, (min_cell[0], min_cell[1]-1), min_cell)
-        check_and_append(check, a_star, a_star_back, (min_cell[0], min_cell[1]+1), min_cell)
+    for g in gold:
+        a_star_gold.append(find_path(check, (x, y), g))
 
-        if gold[0] in a_star:
-            break
+    a_star_gold.sort(key=lambda xy_l: xy_l[1])
 
-    back = gold[0]
-    while a_star_back[back] != (x, y):
-        back = a_star_back[back]
-
-    if x - back[0] < 0:
+    if x - a_star_gold[0][0][0] < 0:
         return 'right'
-    if x - back[0] > 0:
+    if x - a_star_gold[0][0][0] > 0:
         return 'left'
-    if y - back[1] < 0:
+    if y - a_star_gold[0][0][1] < 0:
         return 'down'
-    if y - back[1] > 0:
+    if y - a_star_gold[0][0][1] > 0:
         return 'up'
 
     return random.choice(['left', 'right', 'right', 'up', 'down'])
