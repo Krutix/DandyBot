@@ -1,6 +1,10 @@
 ﻿import random
 import random_bot
 
+class PathFindError(Exception):
+    pass
+
+
 def find_gold(check, x, y, depth) -> [(int, int)]:
     gold = set()
     for i in range(depth * 2 + 1):
@@ -17,7 +21,7 @@ def find_gold(check, x, y, depth) -> [(int, int)]:
 def potencial_len(xy, t): return abs(xy[0] - t[0]) + abs(xy[1] - t[1])
 
 def check_and_append(check, a_star, a_star_back, t, min_cell):
-    addition = 1
+    addition = 4 if check('player', t[0], t[1]) else 1
     if t in a_star:
         if a_star[t] > a_star[min_cell]+addition:
             a_star[t] = a_star[min_cell]+addition
@@ -26,11 +30,15 @@ def check_and_append(check, a_star, a_star_back, t, min_cell):
         a_star[t] = a_star[min_cell]+addition
         a_star_back[t] = min_cell
 
-def find_path(check, start, find) -> ((int, int), int):
+def find_path(check, start:(int, int), find:(int, int), iters:int) -> ((int, int), int):
     a_star = {start : 0}
     a_star_back = {}
     a_star_calculated = set()
     while True:
+        if iters != 0:
+            iters -= 1
+        else:
+            raise PathFindError("path is too long")
         key_min = lambda xy: a_star[xy] + potencial_len(xy, find) if not xy in a_star_calculated else 99999999
         min_cell = min([*a_star], key=key_min)
         a_star_calculated |= {min_cell}
@@ -67,17 +75,21 @@ def script(check, x, y):
     a_star_gold = []
 
     for g in gold:
-        a_star_gold.append(find_path(check, (x, y), g))
+        try:
+            a_star_gold.append(find_path(check, (x, y), g, 5000))
+        except PathFindError as error:
+            pass
 
-    a_star_gold.sort(key=lambda xy_l: xy_l[1])
+    if len(a_star_gold) != 0:
+        a_star_gold.sort(key=lambda xy_l: xy_l[1])
 
-    if x - a_star_gold[0][0][0] < 0:
-        return 'right'
-    if x - a_star_gold[0][0][0] > 0:
-        return 'left'
-    if y - a_star_gold[0][0][1] < 0:
-        return 'down'
-    if y - a_star_gold[0][0][1] > 0:
-        return 'up'
+        if x - a_star_gold[0][0][0] < 0:
+            return 'right'
+        if x - a_star_gold[0][0][0] > 0:
+            return 'left'
+        if y - a_star_gold[0][0][1] < 0:
+            return 'down'
+        if y - a_star_gold[0][0][1] > 0:
+            return 'up'
 
     return random.choice(['left', 'right', 'right', 'up', 'down'])
