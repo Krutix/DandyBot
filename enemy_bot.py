@@ -21,7 +21,7 @@ def find_gold(check, x, y, depth) -> [(int, int)]:
 def potencial_len(xy, t): return abs(xy[0] - t[0]) + abs(xy[1] - t[1])
 
 def check_and_append(check, a_star, a_star_back, t, min_cell):
-    addition = 1
+    addition = 4 if check('player', t[0], t[1]) else 1
     if t in a_star:
         if a_star[t] > a_star[min_cell]+addition:
             a_star[t] = a_star[min_cell]+addition

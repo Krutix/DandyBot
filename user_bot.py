@@ -4,6 +4,27 @@ import random_bot
 class PathFindError(Exception):
     pass
 
+def random_work(): return random.choice(['left', 'right', 'right', 'up', 'down'])
+
+def potencial_len(xy, t): return abs(xy[0] - t[0]) + abs(xy[1] - t[1])
+
+def gold_value(check, x, y) -> int:
+    value  = check('gold', x,   y)
+
+    value += check('gold', x+1, y)
+    value += check('gold', x+1, y-1)
+    value += check('gold', x+1, y+1)
+
+    value += check('gold', x-1, y)
+    value += check('gold', x-1, y-1)
+    value += check('gold', x-1, y+1)
+
+    value += check('gold', x-2, y)
+    value += check('gold', x+2, y)
+    value += check('gold', x,   y+2)
+    value += check('gold', x,   y-2)
+    return value
+
 
 def find_gold(check, x, y, depth) -> [(int, int)]:
     gold = set()
@@ -17,8 +38,6 @@ def find_gold(check, x, y, depth) -> [(int, int)]:
         if check('gold', x + depth, y - depth + i):
             gold |= {(x + depth, y - depth + i)}
     return gold
-
-def potencial_len(xy, t): return abs(xy[0] - t[0]) + abs(xy[1] - t[1])
 
 def check_and_append(check, a_star, a_star_back, t, min_cell):
     addition = 4 if check('player', t[0], t[1]) else 1
@@ -56,8 +75,6 @@ def find_path(check, start:(int, int), find:(int, int), iters:int) -> ((int, int
         back = a_star_back[back]
     return (back, a_star[find])
 
-def random_work(): return random.choice(['left', 'right', 'right', 'up', 'down'])
-
 
 def script(check, x, y):
 
@@ -89,7 +106,7 @@ def script(check, x, y):
     if len(a_star_gold) == 0:
         return random_work()
 
-    a_star_gold.sort(key=lambda xy_l: xy_l[1])
+    a_star_gold.sort(key=lambda xy_l: xy_l[1] - gold_value(check, xy_l[0][0], xy_l[0][1]))
 
     if x - a_star_gold[0][0][0] < 0:
         return 'right'
