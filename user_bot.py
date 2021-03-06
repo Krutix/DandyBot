@@ -56,13 +56,19 @@ def find_path(check, start:(int, int), find:(int, int), iters:int) -> ((int, int
         back = a_star_back[back]
     return (back, a_star[find])
 
+def random_work(): return random.choice(['left', 'right', 'right', 'up', 'down'])
+
+
 def script(check, x, y):
+
     if check('gold', x, y):
         return 'take'
 
     gold = set()
     depth = 1
     while len(gold) == 0:
+        if depth > 100:
+            return random_work()
         gold |= find_gold(check, x, y, depth)
         depth += 1
     for _ in range(4):
@@ -80,16 +86,16 @@ def script(check, x, y):
         except PathFindError as error:
             pass
 
-    if len(a_star_gold) != 0:
-        a_star_gold.sort(key=lambda xy_l: xy_l[1])
+    if len(a_star_gold) == 0:
+        return random_work()
 
-        if x - a_star_gold[0][0][0] < 0:
-            return 'right'
-        if x - a_star_gold[0][0][0] > 0:
-            return 'left'
-        if y - a_star_gold[0][0][1] < 0:
-            return 'down'
-        if y - a_star_gold[0][0][1] > 0:
-            return 'up'
+    a_star_gold.sort(key=lambda xy_l: xy_l[1])
 
-    return random.choice(['left', 'right', 'right', 'up', 'down'])
+    if x - a_star_gold[0][0][0] < 0:
+        return 'right'
+    if x - a_star_gold[0][0][0] > 0:
+        return 'left'
+    if y - a_star_gold[0][0][1] < 0:
+        return 'down'
+    if y - a_star_gold[0][0][1] > 0:
+        return 'up'
