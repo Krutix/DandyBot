@@ -82,7 +82,7 @@ def script(check, x, y):
 
     for g in gold:
         try:
-            a_star_gold.append(find_path(check, (x, y), g, 5000))
+            a_star_gold.append(find_path(check, (x, y), g, 500))
         except PathFindError as error:
             pass
 
